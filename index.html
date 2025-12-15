@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>StartBiz Ideas</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>StartBiz Ideas</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body class="light">
 
 <header>
@@ -12,15 +13,12 @@
   <h2>StartBiz Ideas</h2>
 </header>
 
-<!-- MENU -->
 <div id="menu" class="hidden">
-  <p onclick="openProfile()">👤 Profil</p>
   <p onclick="toggleTheme()">🎨 Tema</p>
   <p onclick="login()">🔐 Login Google</p>
   <p onclick="logout()">🚪 Logout</p>
 </div>
 
-<!-- POST IDE -->
 <section class="post-box">
   <select id="category">
     <option>SEO</option>
@@ -28,21 +26,21 @@
     <option>Konten</option>
     <option>AI</option>
   </select>
-  <textarea id="ideaText" placeholder="Bagikan ide bisnis digital marketing..."></textarea>
-  <button onclick="postIdea()">Posting</button>
+  <textarea id="ideaText"></textarea>
+  <button onclick="postIdea()">Posting Ide</button>
 </section>
 
-<!-- TRENDING -->
-<h3>🔥 Trending Ideas</h3>
+<h3>🔥 Trending</h3>
 <div id="trending"></div>
 
-<!-- FEED -->
 <h3>📢 Semua Ide</h3>
 <div id="feed"></div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script src="firebase.js"></script>
 <script src="app.js"></script>
 </body>
