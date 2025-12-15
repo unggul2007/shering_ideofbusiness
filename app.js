@@ -1,12 +1,19 @@
+// ELEMENT
 const menu = document.getElementById("menu");
+const menuBtn = document.getElementById("menuBtn");
 const feed = document.getElementById("feed");
 const trending = document.getElementById("trending");
-let user = null;
+const ideaText = document.getElementById("ideaText");
+const category = document.getElementById("category");
+
+let currentUser = null;
 
 // MENU
-menuBtn.onclick = () => menu.classList.toggle("hidden");
+menuBtn.addEventListener("click", () => {
+  menu.classList.toggle("hidden");
+});
 
-// TEMA
+// THEME
 function toggleTheme(){
   document.body.classList.toggle("dark");
   document.body.classList.toggle("light");
@@ -16,79 +23,94 @@ function toggleTheme(){
 function login(){
   auth.signInWithPopup(provider);
 }
+
 function logout(){
   auth.signOut();
 }
 
 // AUTH STATE
-auth.onAuthStateChanged(u => user = u);
+auth.onAuthStateChanged(user=>{
+  currentUser = user;
+});
 
 // POST IDE
 function postIdea(){
-  if(!user) return alert("Login dulu");
+  if(!currentUser){
+    alert("Silakan login dulu");
+    return;
+  }
+
+  if(ideaText.value.trim()==="") return;
+
   db.collection("ideas").add({
     text: ideaText.value,
-    user: user.displayName,
-    uid: user.uid,
     category: category.value,
+    user: currentUser.displayName,
+    uid: currentUser.uid,
     likes: 0,
     views: 0,
-    time: firebase.firestore.FieldValue.serverTimestamp()
+    created: firebase.firestore.FieldValue.serverTimestamp()
   });
+
   ideaText.value="";
 }
 
-// LOAD IDE
-db.collection("ideas").orderBy("time","desc")
-.onSnapshot(snap=>{
+// LOAD IDE + VIEW
+db.collection("ideas")
+.orderBy("created","desc")
+.onSnapshot(snapshot=>{
   feed.innerHTML="";
-  snap.forEach(doc=>{
-    const d=doc.data();
-    feed.innerHTML+=`
+  snapshot.forEach(doc=>{
+    const d = doc.data();
+
+    // tambah view
+    db.collection("ideas").doc(doc.id)
+      .update({ views: firebase.firestore.FieldValue.increment(1) });
+
+    feed.innerHTML += `
       <div class="post">
-        <b>${d.user}</b> (${d.category})
+        <b>${d.user}</b> - ${d.category}
         <p>${d.text}</p>
-        ❤️ ${d.likes} | 👁 ${d.views}
-        <button onclick="like('${doc.id}')">👍</button>
-        <button onclick="comment('${doc.id}')">💬</button>
-        <button onclick="follow('${d.uid}')">🤝 Follow</button>
+        👍 ${d.likes} | 👁 ${d.views}
+        <br>
+        <button onclick="likeIdea('${doc.id}')">Like</button>
+        <button onclick="commentIdea('${doc.id}')">Komentar</button>
       </div>
     `;
   });
 });
 
 // LIKE
-function like(id){
+function likeIdea(id){
   db.collection("ideas").doc(id)
-  .update({ likes: firebase.firestore.FieldValue.increment(1) });
+    .update({ likes: firebase.firestore.FieldValue.increment(1) });
 }
 
-// KOMENTAR + BALASAN
-function comment(id){
-  const c = prompt("Komentar:");
-  if(!c) return;
-  db.collection("ideas").doc(id)
-  .collection("comments").add({
-    text:c,
-    user:user.displayName,
-    time:firebase.firestore.FieldValue.serverTimestamp()
-  });
-}
+// KOMENTAR
+function commentIdea(id){
+  if(!currentUser) return alert("Login dulu");
 
-// FOLLOW
-function follow(uid){
-  if(!user) return;
-  db.collection("follows").add({
-    from:user.uid,
-    to:uid
-  });
+  const text = prompt("Tulis komentar");
+  if(!text) return;
+
+  db.collection("ideas")
+    .doc(id)
+    .collection("comments")
+    .add({
+      text,
+      user: currentUser.displayName,
+      time: firebase.firestore.FieldValue.serverTimestamp()
+    });
 }
 
 // TRENDING
-db.collection("ideas").orderBy("likes","desc").limit(3)
-.onSnapshot(s=>{
+db.collection("ideas")
+.orderBy("likes","desc")
+.limit(3)
+.onSnapshot(snapshot=>{
   trending.innerHTML="";
-  s.forEach(d=>{
-    trending.innerHTML+=`<p>🔥 ${d.data().text}</p>`;
+  snapshot.forEach(doc=>{
+    trending.innerHTML += `<p>🔥 ${doc.data().text}</p>`;
   });
 });
+
